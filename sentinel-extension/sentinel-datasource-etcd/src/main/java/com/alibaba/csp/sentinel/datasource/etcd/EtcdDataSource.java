@@ -88,13 +88,14 @@ public class EtcdDataSource<T> extends AbstractDataSource<String, T> {
                 WatchEvent.EventType eventType = watchEvent.getEventType();
                 if (eventType == WatchEvent.EventType.PUT) {
                     try {
-                        T newValue = loadConfig();
+                        String newValueJson = watchEvent.getKeyValue().getValue().toString(charset);
+                        T newValue = parser.convert(newValueJson);
                         getProperty().updateValue(newValue);
                     } catch (Exception e) {
                         RecordLog.warn("[EtcdDataSource] Failed to update config", e);
                     }
                 } else if (eventType == WatchEvent.EventType.DELETE) {
-                    RecordLog.info("[EtcdDataSource] Cleaning config for key <{0}>", key);
+                    RecordLog.info("[EtcdDataSource] Cleaning config for key <{}>", key);
                     getProperty().updateValue(null);
                 }
             }

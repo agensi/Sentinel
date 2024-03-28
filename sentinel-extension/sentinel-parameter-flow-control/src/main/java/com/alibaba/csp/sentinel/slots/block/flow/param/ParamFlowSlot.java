@@ -15,13 +15,14 @@
  */
 package com.alibaba.csp.sentinel.slots.block.flow.param;
 
-import java.util.List;
-
 import com.alibaba.csp.sentinel.context.Context;
 import com.alibaba.csp.sentinel.node.DefaultNode;
 import com.alibaba.csp.sentinel.slotchain.AbstractLinkedProcessorSlot;
 import com.alibaba.csp.sentinel.slotchain.ResourceWrapper;
 import com.alibaba.csp.sentinel.slots.block.BlockException;
+import com.alibaba.csp.sentinel.spi.Spi;
+
+import java.util.List;
 
 /**
  * A processor slot that is responsible for flow control by frequent ("hot spot") parameters.
@@ -30,6 +31,7 @@ import com.alibaba.csp.sentinel.slots.block.BlockException;
  * @author Eric Zhao
  * @since 0.2.0
  */
+@Spi(order = -3000)
 public class ParamFlowSlot extends AbstractLinkedProcessorSlot<DefaultNode> {
 
     @Override
@@ -80,6 +82,10 @@ public class ParamFlowSlot extends AbstractLinkedProcessorSlot<DefaultNode> {
                 String triggeredParam = "";
                 if (args.length > rule.getParamIdx()) {
                     Object value = args[rule.getParamIdx()];
+                    // Assign actual value with the result of paramFlowKey method
+                    if (value instanceof ParamFlowArgument) {
+                        value = ((ParamFlowArgument) value).paramFlowKey();
+                    }
                     triggeredParam = String.valueOf(value);
                 }
                 throw new ParamFlowException(resourceWrapper.getName(), triggeredParam, rule);
